@@ -2,7 +2,6 @@ import { ReactNode } from "react";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { Viewport } from "next";
 import { getSEOTags } from "@/libs/seo";
-import ClientLayout from "@/components/LayoutClient";
 
 import config from "@/config";
 import "./globals.css";
@@ -28,7 +27,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <div className="min-h-screen bg-gradient-to-b from-background to-secondary/10">
           <main className="container mx-auto px-4 py-8">
             {/* ClientLayout contains all the client wrappers (Crisp chat support, toast messages, tooltips, etc.) */}
-            <ClientLayout>{children}</ClientLayout>
+            {children}
           </main>
         </div>
       </body>
