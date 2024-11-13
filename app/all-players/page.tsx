@@ -48,12 +48,10 @@ export default async function AllPlayersPage() {
         <CardHeader>
           <CardTitle>Player Stats</CardTitle>
           <CardDescription>
-            Search and sort through today's NBA player statistics.
+            Search and sort through today&apos;s NBA player statistics.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <AllPlayersTable players={players} />
-        </CardContent>
+        <CardContent></CardContent>
       </Card>
     </div>
   );
