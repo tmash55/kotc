@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { Viewport } from "next";
 import { getSEOTags } from "@/libs/seo";
+import { Analytics } from "@vercel/analytics/react";
 
 import { ThemeSwitcher } from "@/components/theme-switcher";
 
@@ -45,6 +46,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           </div>
           <Toaster />
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
