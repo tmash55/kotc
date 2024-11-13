@@ -15,7 +15,6 @@ import { ThemeProvider } from "@/components/theme-proivder";
 const font = Plus_Jakarta_Sans({ subsets: ["latin"] });
 
 export const viewport: Viewport = {
-  themeColor: config.colors.main,
   width: "device-width",
   initialScale: 1,
 };
