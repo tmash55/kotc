@@ -8,7 +8,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import HistoricalPlayersTable from "@/components/kotc/HistoricalPlayersTable";
-import { DateSelector } from "@/components/kotc/DateSelector";
 
 type Player = {
   personId: string;
@@ -73,7 +72,6 @@ export default async function HistoricalPage({
         <h2 className="text-xl font-semibold">
           Historical Data: {format(date, "MMMM d, yyyy")}
         </h2>
-        <DateSelector />
       </div>
 
       <Card>
