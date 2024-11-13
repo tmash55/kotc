@@ -7,7 +7,6 @@ import { ThemeSwitcher } from "@/components/theme-switcher";
 
 import config from "@/config";
 import "./globals.css";
-import { Navbar } from "@/components/kotc/NavBar";
 
 import { Toaster } from "@/components/ui/toaster";
 import ContactCreatorButton from "@/components/contact-creator";
