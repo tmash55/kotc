@@ -61,7 +61,7 @@ export default function Component() {
           <nav className="flex items-center space-x-6 ml-6">
             <Button variant="ghost" className="flex items-center space-x-2">
               <Activity className="h-4 w-4" />
-              <span>Today's Games</span>
+              <span>Today&apos;s Games</span>
             </Button>
             <Button variant="ghost" className="flex items-center space-x-2">
               <History className="h-4 w-4" />

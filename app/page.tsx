@@ -48,24 +48,28 @@ export default function Home() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <header className="text-center mb-12">
-        <h1 className="text-5xl font-extrabold text-primary mb-4 tracking-tight">
-          KOTC Tracker
-        </h1>
-        <p className="text-xl text-muted-foreground">
-          King of the Court Tracker for DraftKings Promo
-        </p>
-      </header>
-      <main className="space-y-8">
-        <div className="container mx-auto py-10">
-          <KOTCDashboard
-            players={players}
-            allGamesFinal={allGamesFinal}
-            lastUpdated={lastUpdated}
-          />
+    <div className="container mx-auto px-4">
+      <section className="py-12 md:py-24 lg:py-32 xl:py-32">
+        <div className="container px-4 md:px-6">
+          <div className="flex flex-col items-center space-y-4 text-center">
+            <div className="space-y-2">
+              <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
+                KOTC Tracker
+              </h1>
+              <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
+                King of the Court Tracker for DraftKings Promo
+              </p>
+            </div>
+          </div>
         </div>
-      </main>
+      </section>
+      <div className="mt-4">
+        <KOTCDashboard
+          players={players}
+          allGamesFinal={allGamesFinal}
+          lastUpdated={lastUpdated}
+        />
+      </div>
     </div>
   );
 }

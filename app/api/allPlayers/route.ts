@@ -9,6 +9,8 @@ type Player = {
   assists: number;
   pra: number;
   gameStatus: string;
+  gameClock: string;
+  period: number;
   gameDate: string;
 };
 
@@ -88,6 +90,11 @@ export async function GET() {
         allGamesFinal = false;
       }
 
+      const gameStatus =
+        game.gameStatus === 2
+          ? `${game.period}Q ${game.gameClock}`
+          : game.gameStatusText;
+
       allPlayers = allPlayers.concat(
         players.map((player) => ({
           personId: player.personId,
@@ -100,7 +107,9 @@ export async function GET() {
             player.statistics.points +
             player.statistics.reboundsTotal +
             player.statistics.assists,
-          gameStatus: game.gameStatusText,
+          gameStatus: gameStatus.trim(),
+          gameClock: game.gameClock,
+          period: game.period,
           gameDate: scoreboard.gameDate,
         }))
       );
