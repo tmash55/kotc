@@ -12,6 +12,7 @@ type Player = {
   gameClock: string;
   period: number;
   gameDate: string;
+  oncourt: boolean;
 };
 
 async function fetchScoreboard() {
@@ -73,18 +74,48 @@ export async function GET() {
       });
     }
 
+    // Try to fetch the first game's boxscore to check if data is available
+    const firstGameBoxscore = await fetchBoxscore(scoreboard.games[0].gameId);
+
+    // If we can't access the first game's boxscore, return just the games schedule
+    if (!firstGameBoxscore) {
+      return NextResponse.json({
+        gamesScheduled: true,
+        games: scoreboard.games.map((game: any) => ({
+          gameId: game.gameId,
+          awayTeam: {
+            teamTricode: game.awayTeam.teamTricode,
+            teamName: game.awayTeam.teamName,
+            wins: game.awayTeam.wins,
+            losses: game.awayTeam.losses,
+          },
+          homeTeam: {
+            teamTricode: game.homeTeam.teamTricode,
+            teamName: game.homeTeam.teamName,
+            wins: game.homeTeam.wins,
+            losses: game.homeTeam.losses,
+          },
+          gameStatus: game.gameStatus,
+          gameStatusText: game.gameStatusText,
+          startTimeUTC: game.gameTimeUTC,
+          gameLabel: game.gameLabel,
+          gameSubLabel: game.gameSubLabel,
+        })),
+        players: [],
+        allGamesFinal: false,
+      });
+    }
+
+    // If we can access boxscores, proceed with the regular flow
     for (const game of scoreboard.games) {
       const boxscore = await fetchBoxscore(game.gameId);
-      if (!boxscore) {
-        // If we couldn't fetch the boxscore, skip this game
-        continue;
-      }
+      if (!boxscore) continue;
 
       const players = [
         ...boxscore.homeTeam.players,
         ...boxscore.awayTeam.players,
       ];
-      const matchup = `${game.awayTeam.teamTricode} @ ${game.homeTeam.teamTricode}`;
+      const matchup = `${game.awayTeam.score} ${game.awayTeam.teamTricode} @ ${game.homeTeam.teamTricode} ${game.homeTeam.score}`;
 
       if (game.gameStatus !== 3) {
         allGamesFinal = false;
@@ -111,15 +142,12 @@ export async function GET() {
           gameClock: game.gameClock,
           period: game.period,
           gameDate: scoreboard.gameDate,
+          oncourt: player.oncourt === "1",
         }))
       );
     }
 
     allPlayers.sort((a, b) => b.pra - a.pra);
-
-    console.log(
-      `Fetched ${allPlayers.length} players for ${scoreboard.gameDate}`
-    );
 
     return NextResponse.json({
       players: allPlayers,

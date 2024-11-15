@@ -3,12 +3,15 @@
 import { useState, useEffect } from "react";
 import KOTCDashboard from "@/components/kotc/kotc-dashboard";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import ScheduledGames from "@/components/kotc/ScheduledGames";
 
 export default function Home() {
   const [players, setPlayers] = useState([]);
+  const [games, setGames] = useState([]);
   const [allGamesFinal, setAllGamesFinal] = useState(false);
   const [lastUpdated, setLastUpdated] = useState("");
   const [error, setError] = useState(null);
+  const [gamesScheduled, setGamesScheduled] = useState(false);
 
   const fetchData = async () => {
     try {
@@ -17,8 +20,16 @@ export default function Home() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      setPlayers(data.players);
-      setAllGamesFinal(data.allGamesFinal);
+
+      if (data.gamesScheduled && (!data.players || data.players.length === 0)) {
+        setGamesScheduled(true);
+        setGames(data.games);
+      } else {
+        setGamesScheduled(false);
+        setPlayers(data.players);
+        setAllGamesFinal(data.allGamesFinal);
+      }
+
       setLastUpdated(new Date().toLocaleTimeString());
     } catch (e) {
       console.error("Fetching error:", e);
@@ -64,11 +75,15 @@ export default function Home() {
         </div>
       </section>
       <div className="mt-4">
-        <KOTCDashboard
-          players={players}
-          allGamesFinal={allGamesFinal}
-          lastUpdated={lastUpdated}
-        />
+        {gamesScheduled ? (
+          <ScheduledGames games={games} />
+        ) : (
+          <KOTCDashboard
+            players={players}
+            allGamesFinal={allGamesFinal}
+            lastUpdated={lastUpdated}
+          />
+        )}
       </div>
     </div>
   );

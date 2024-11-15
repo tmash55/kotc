@@ -12,6 +12,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import ContactCreatorButton from "@/components/contact-creator";
 import { ThemeProvider } from "@/components/theme-proivder";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const font = Plus_Jakarta_Sans({ subsets: ["latin"] });
 
@@ -39,6 +40,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 <div className="flex items-center space-x-2 sm:space-x-4">
                   <ContactCreatorButton />
                   <ThemeSwitcher />
+                  <SpeedInsights />
                 </div>
               </header>
               <main>{children}</main>

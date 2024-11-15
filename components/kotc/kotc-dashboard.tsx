@@ -40,6 +40,7 @@ type Player = {
   gameClock: string;
   period: number;
   gameDate: string;
+  oncourt: boolean; // New property
 };
 
 type ViewMode = "card" | "table";
@@ -53,6 +54,20 @@ type KOTCDashboardProps = {
 type ChangedStats = {
   [key: string]: Set<"points" | "rebounds" | "assists" | "pra" | "gameStatus">;
 };
+
+const OnCourtIndicator = ({ isOnCourt }: { isOnCourt: boolean }) =>
+  isOnCourt ? (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger>
+          <span className="inline-block w-2 h-2 rounded-full bg-green-500 mr-2" />
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>Player is on the court</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  ) : null;
 
 export default function KOTCDashboard({
   players,
@@ -312,7 +327,8 @@ export default function KOTCDashboard({
                     <div className="flex items-start space-x-3">
                       <div className="mt-1">{getTrophyIcon(rank)}</div>
                       <div>
-                        <h2 className="font-bold text-lg text-gray-900 dark:text-gray-100">
+                        <h2 className="font-bold text-lg text-gray-900 dark:text-gray-100 flex items-center">
+                          <OnCourtIndicator isOnCourt={player.oncourt} />
                           {player.name}
                         </h2>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -432,7 +448,10 @@ export default function KOTCDashboard({
                       </div>
                     </TableCell>
                     <TableCell className="font-semibold">
-                      {player.name}
+                      <div className="flex items-center">
+                        <OnCourtIndicator isOnCourt={player.oncourt} />
+                        {player.name}
+                      </div>
                     </TableCell>
                     <TableCell>{player.matchup}</TableCell>
                     <TableCell
