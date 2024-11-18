@@ -6,13 +6,13 @@ import { Analytics } from "@vercel/analytics/react";
 
 import { ThemeSwitcher } from "@/components/theme-switcher";
 
-import config from "@/config";
 import "./globals.css";
 
 import { Toaster } from "@/components/ui/toaster";
 import ContactCreatorButton from "@/components/contact-creator";
 import { ThemeProvider } from "@/components/theme-proivder";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import Script from "next/script";
 
 const font = Plus_Jakarta_Sans({ subsets: ["latin"] });
 
@@ -26,6 +26,14 @@ export const metadata = getSEOTags();
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6979411075342172"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
+      </head>
       <body className={font.className}>
         <ThemeProvider
           attribute="class"
