@@ -126,12 +126,14 @@ export default function Home() {
               </p>
               <Tabs value={activeTab} onValueChange={setActiveTab}>
                 <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="schedule">Today's Schedule</TabsTrigger>
+                  <TabsTrigger value="schedule">
+                    Today&apos;s Schedule
+                  </TabsTrigger>
                   <TabsTrigger value="odds">DraftKings PRA</TabsTrigger>
                 </TabsList>
                 <TabsContent value="schedule">
                   <h2 className="text-2xl font-bold my-4">
-                    Today's NBA Schedule
+                    Today&apos;s NBA Schedule
                   </h2>
                   <ScheduledGames games={games} />
                 </TabsContent>
