@@ -4,8 +4,17 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Mail } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-export default function ContactCreatorButton() {
+interface ContactCreatorButtonProps {
+  className?: string;
+  onClick?: () => void;
+}
+
+export default function ContactCreatorButton({
+  className,
+  onClick,
+}: ContactCreatorButtonProps) {
   const { toast } = useToast();
   const [copying, setCopying] = useState(false);
   const creatorEmail = "tyler.maschoff@gmail.com"; // Replace with your actual email
@@ -27,6 +36,7 @@ export default function ContactCreatorButton() {
     } finally {
       setCopying(false);
     }
+    onClick?.();
   };
 
   return (
@@ -35,7 +45,7 @@ export default function ContactCreatorButton() {
       size="sm"
       onClick={copyEmailToClipboard}
       disabled={copying}
-      className="flex items-center"
+      className={cn("flex items-center", className)}
     >
       <Mail className="h-4 w-4" />
       <span className="sr-only md:not-sr-only md:ml-2">Contact Creator</span>

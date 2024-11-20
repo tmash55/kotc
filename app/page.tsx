@@ -7,6 +7,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import ScheduledGames from "@/components/kotc/ScheduledGames";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import DraftKingsPRA from "@/components/kotc/DraftKingsPRA";
 
 export default function Home() {
   const [players, setPlayers] = useState([]);
@@ -17,6 +19,7 @@ export default function Home() {
   const [gamesScheduled, setGamesScheduled] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isManualRefresh, setIsManualRefresh] = useState(true);
+  const [activeTab, setActiveTab] = useState("odds");
   const isInitialMount = useRef(true);
 
   const fetchData = async (manual = false) => {
@@ -56,7 +59,7 @@ export default function Home() {
       fetchData(true);
       isInitialMount.current = false;
     } else if (!gamesScheduled) {
-      const intervalId = setInterval(() => fetchData(false), 3000);
+      const intervalId = setInterval(() => fetchData(false), 15000);
       return () => clearInterval(intervalId);
     }
   }, [gamesScheduled]);
@@ -85,7 +88,7 @@ export default function Home() {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="py-12 md:py-24 lg:py-32 xl:py-32"
+          className="py-10 md:py-16 lg:py-24 xl:py-24"
         >
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center space-y-4 text-center">
@@ -118,7 +121,27 @@ export default function Home() {
               animate={isManualRefresh ? { opacity: 1, x: 0 } : false}
               transition={{ duration: 0.3 }}
             >
-              <ScheduledGames games={games} />
+              <p className="text-lg text-muted-foreground mb-4">
+                Once games start, this page will display the live leaderboard.
+              </p>
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="schedule">Today's Schedule</TabsTrigger>
+                  <TabsTrigger value="odds">DraftKings PRA</TabsTrigger>
+                </TabsList>
+                <TabsContent value="schedule">
+                  <h2 className="text-2xl font-bold my-4">
+                    Today's NBA Schedule
+                  </h2>
+                  <ScheduledGames games={games} />
+                </TabsContent>
+                <TabsContent value="odds">
+                  <h2 className="text-2xl font-bold my-4">
+                    DraftKings PRA Odds
+                  </h2>
+                  <DraftKingsPRA />
+                </TabsContent>
+              </Tabs>
             </motion.div>
           ) : (
             <motion.div

@@ -1,183 +1,152 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { JSX } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import ButtonSignin from "./ButtonSignin";
+import { Menu, X } from "lucide-react";
 import logo from "@/app/icon.png";
 import config from "@/config";
+import ContactCreatorButton from "@/components/contact-creator";
+import { ThemeSwitcher } from "@/components/theme-switcher";
+import { cn } from "@/lib/utils";
 
-const links: {
-  href: string;
-  label: string;
-}[] = [
-  {
-    href: "/#pricing",
-    label: "Pricing",
-  },
-  {
-    href: "/#testimonials",
-    label: "Reviews",
-  },
-  {
-    href: "/#faq",
-    label: "FAQ",
-  },
+const links = [
+  { href: "/schedule", label: "Schedule" },
+  { href: "/", label: "Leaderboard" },
+  { href: "/odds", label: "Odds" },
 ];
 
-const cta: JSX.Element = <ButtonSignin extraStyle="btn-primary" />;
-
-// A header with a logo on the left, links in the center (like Pricing, etc...), and a CTA (like Get Started or Login) on the right.
-// The header is responsive, and on mobile, the links are hidden behind a burger button.
-const Header = () => {
+export default function Header() {
   const searchParams = useSearchParams();
-  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [isOpen, setIsOpen] = useState(false);
 
-  // setIsOpen(false) when the route changes (i.e: when the user clicks on a link on mobile)
   useEffect(() => {
     setIsOpen(false);
   }, [searchParams]);
 
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
+
   return (
-    <header className="bg-base-200">
-      <nav
-        className="container flex items-center justify-between px-8 py-4 mx-auto"
-        aria-label="Global"
-      >
-        {/* Your logo/name on large screens */}
-        <div className="flex lg:flex-1">
-          <Link
-            className="flex items-center gap-2 shrink-0 "
-            href="/"
-            title={`${config.appName} homepage`}
-          >
-            <Image
-              src={logo}
-              alt={`${config.appName} logo`}
-              className="w-8"
-              placeholder="blur"
-              priority={true}
-              width={32}
-              height={32}
-            />
-            <span className="font-extrabold text-lg">{config.appName}</span>
-          </Link>
-        </div>
-        {/* Burger button to open menu on mobile */}
-        <div className="flex lg:hidden">
-          <button
-            type="button"
-            className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5"
-            onClick={() => setIsOpen(true)}
-          >
-            <span className="sr-only">Open main menu</span>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="w-6 h-6 text-base-content"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
-              />
-            </svg>
-          </button>
-        </div>
-
-        {/* Your links on large screens */}
-        <div className="hidden lg:flex lg:justify-center lg:gap-12 lg:items-center">
-          {links.map((link) => (
-            <Link
-              href={link.href}
-              key={link.href}
-              className="link link-hover"
-              title={link.label}
-            >
-              {link.label}
-            </Link>
-          ))}
-        </div>
-
-        {/* CTA on large screens */}
-        <div className="hidden lg:flex lg:justify-end lg:flex-1">{cta}</div>
-      </nav>
-
-      {/* Mobile menu, show/hide based on menu state. */}
-      <div className={`relative z-50 ${isOpen ? "" : "hidden"}`}>
-        <div
-          className={`fixed inset-y-0 right-0 z-10 w-full px-8 py-4 overflow-y-auto bg-base-200 sm:max-w-sm sm:ring-1 sm:ring-neutral/10 transform origin-right transition ease-in-out duration-300`}
-        >
-          {/* Your logo/name on small screens */}
-          <div className="flex items-center justify-between">
-            <Link
-              className="flex items-center gap-2 shrink-0 "
-              title={`${config.appName} homepage`}
-              href="/"
-            >
+    <header className="sticky top-0 z-50 w-full border-b bg-background">
+      <div className="container mx-auto px-4">
+        <div className="flex h-16 items-center">
+          {/* Logo section - left */}
+          <div className="flex-none">
+            <Link href="/" className="flex items-center space-x-2">
               <Image
                 src={logo}
-                alt={`${config.appName} logo`}
-                className="w-8"
-                placeholder="blur"
-                priority={true}
+                alt={config.appName}
                 width={32}
                 height={32}
+                className="h-8 w-8"
               />
-              <span className="font-extrabold text-lg">{config.appName}</span>
+              <span className="font-bold text-xl">{config.appName}</span>
             </Link>
-            <button
-              type="button"
-              className="-m-2.5 rounded-md p-2.5"
-              onClick={() => setIsOpen(false)}
-            >
-              <span className="sr-only">Close menu</span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className="w-6 h-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
           </div>
 
-          {/* Your links on small screens */}
-          <div className="flow-root mt-6">
-            <div className="py-4">
-              <div className="flex flex-col gap-y-4 items-start">
+          {/* Navigation - center */}
+          <nav className="hidden md:flex flex-1 justify-center items-center">
+            <div className="flex items-center space-x-8">
+              {links.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="text-sm font-medium transition-colors hover:text-primary"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </nav>
+
+          {/* Actions - right */}
+          <div className="hidden md:flex flex-none items-center space-x-4">
+            <ContactCreatorButton />
+            <ThemeSwitcher />
+          </div>
+
+          {/* Mobile menu button */}
+          <button
+            className="md:hidden ml-auto"
+            onClick={() => setIsOpen(!isOpen)}
+            aria-label="Toggle menu"
+          >
+            <Menu className="h-6 w-6" />
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile menu */}
+      {isOpen && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <div className="fixed inset-0 bg-background/80 backdrop-blur-sm" />
+
+          <div className="fixed inset-0 bg-background px-4 py-6">
+            <div className="flex flex-col h-full">
+              {/* Header */}
+              <div className="flex items-center justify-between">
+                <Link
+                  href="/"
+                  className="flex items-center space-x-2"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <Image
+                    src={logo}
+                    alt={config.appName}
+                    width={32}
+                    height={32}
+                    className="h-8 w-8"
+                  />
+                  <span className="font-bold text-xl">{config.appName}</span>
+                </Link>
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                >
+                  <X className="h-6 w-6" />
+                  <span className="sr-only">Close</span>
+                </button>
+              </div>
+
+              {/* Navigation */}
+              <nav className="flex flex-col space-y-4 mt-8">
                 {links.map((link) => (
                   <Link
-                    href={link.href}
                     key={link.href}
-                    className="link link-hover"
-                    title={link.label}
+                    href={link.href}
+                    className="text-lg font-semibold transition-colors hover:text-primary px-2 py-1 rounded-md hover:bg-accent"
+                    onClick={() => setIsOpen(false)}
                   >
                     {link.label}
                   </Link>
                 ))}
+              </nav>
+
+              {/* Actions */}
+              <div className="mt-auto space-y-4 pb-6">
+                <ContactCreatorButton
+                  className="w-full justify-center text-base"
+                  onClick={() => setIsOpen(false)}
+                />
+                <div className="flex items-center justify-between px-2 py-2 rounded-md bg-accent/50">
+                  <span className="text-sm font-medium">Theme</span>
+                  <ThemeSwitcher />
+                </div>
               </div>
             </div>
-            <div className="divider"></div>
-            {/* Your CTA on small screens */}
-            <div className="flex flex-col">{cta}</div>
           </div>
         </div>
-      </div>
+      )}
     </header>
   );
-};
-
-export default Header;
+}
