@@ -123,6 +123,7 @@ export default function Home() {
             >
               <p className="text-lg text-muted-foreground mb-4">
                 Once games start, this page will display the live leaderboard.
+                Who will be the king today?
               </p>
               <Tabs value={activeTab} onValueChange={setActiveTab}>
                 <TabsList className="grid w-full grid-cols-2">
