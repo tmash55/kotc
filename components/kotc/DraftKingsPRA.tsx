@@ -9,15 +9,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { RefreshCw } from "lucide-react";
+
+import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
 
 interface Player {
   id: string;
@@ -69,23 +63,31 @@ interface PlayerPRA {
 
 export default function DraftKingsPRA() {
   const [games, setGames] = useState<Game[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  //const [sortBy, setSortBy] = useState<'pra' | 'matchup'>('pra')
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
   const fetchPRAData = async () => {
     setIsLoading(true);
-    setError(null);
     try {
-      const response = await fetch("/api/oddsblaze");
+      const response = await fetch("/api/oddsblaze", {
+        cache: "no-store",
+        headers: {
+          Pragma: "no-cache",
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+        },
+      });
       if (!response.ok) {
         throw new Error("Failed to fetch data");
       }
       const data: ApiResponse = await response.json();
       setGames(data.games);
     } catch (err) {
-      setError("Error fetching PRA data. Please try again later.");
       console.error("Error fetching PRA data:", err);
+      toast({
+        title: "Error",
+        description: "Failed to load odds data. Please try again later.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -93,18 +95,7 @@ export default function DraftKingsPRA() {
 
   useEffect(() => {
     fetchPRAData();
-    const intervalId = setInterval(fetchPRAData, 300000); // Refresh every 5 minutes
-    return () => clearInterval(intervalId);
   }, []);
-
-  const calculateImpliedProbability = (americanOdds: string) => {
-    const odds = parseInt(americanOdds);
-    if (odds > 0) {
-      return 100 / (odds + 100);
-    } else {
-      return -odds / (-odds + 100);
-    }
-  };
 
   const playerPRAData = useMemo(() => {
     return games.flatMap((game) =>
@@ -118,7 +109,7 @@ export default function DraftKingsPRA() {
           id: odd.id,
           name: odd.players[0]?.name || "Unknown Player",
           gameName: `${game.teams.away.name} @ ${game.teams.home.name}`,
-          gameTime: game.start,
+          gameTime: new Date(game.start).toLocaleString(),
           points: odd.points,
           price: odd.price,
         }))
@@ -129,29 +120,24 @@ export default function DraftKingsPRA() {
     return [...playerPRAData].sort((a, b) => b.points - a.points);
   }, [playerPRAData]);
 
+  if (isLoading) {
+    return (
+      <div className="space-y-2">
+        {[...Array(10)].map((_, i) => (
+          <Skeleton key={i} className="h-12 w-full" />
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="w-full">
-      {/* Remove this entire block */}
-      {/* <div className="flex justify-end mb-4">
-        <Select
-          value={sortBy}
-          onValueChange={(value: "pra" | "matchup") => setSortBy(value)}
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Sort by" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="pra">Highest to Lowest PRA</SelectItem>
-            <SelectItem value="matchup">By Matchup</SelectItem>
-          </SelectContent>
-        </Select>
-      </div> */}
-      {error && <p className="text-red-500 mb-4">{error}</p>}
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Player</TableHead>
+              <TableHead>Game</TableHead>
               <TableHead>PRA Over/Under</TableHead>
               <TableHead>Odds</TableHead>
             </TableRow>
@@ -163,6 +149,8 @@ export default function DraftKingsPRA() {
                 className={index % 2 === 0 ? "bg-background" : "bg-muted/50"}
               >
                 <TableCell>{player.name}</TableCell>
+                <TableCell>{player.gameName}</TableCell>
+
                 <TableCell>{player.points}</TableCell>
                 <TableCell>{player.price}</TableCell>
               </TableRow>

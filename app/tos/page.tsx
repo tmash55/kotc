@@ -57,39 +57,66 @@ const TOS = () => {
           className="leading-relaxed whitespace-pre-wrap"
           style={{ fontFamily: "sans-serif" }}
         >
-          {`Last Updated: September 26, 2023
+          {`Here’s a **Terms of Service** tailored for your website, **Track KOTC**, based on the provided details:
 
-Welcome to ShipFast!
+---
 
-These Terms of Service ("Terms") govern your use of the ShipFast website at https://shipfa.st ("Website") and the services provided by ShipFast. By using our Website and services, you agree to these Terms.
+Terms of Service
 
-1. Description of ShipFast
+**Last Updated: November 20, 2024**
 
-ShipFast is a platform that offers a JavaScript code boilerplate to assist entrepreneurs in launching their startups more efficiently.
+Welcome to Track KOTC (“we,” “us,” or “our”). These Terms of Service (“Terms”) govern your access to and use of our website located at [https://trackkotc.com](https://trackkotc.com) (the “Website”). By accessing or using the Website, you agree to comply with and be bound by these Terms. If you do not agree to these Terms, please do not use the Website.
 
-2. Ownership and Usage Rights
+---
 
-When you purchase a package from ShipFast, you gain the right to download and use the code provided for creating applications. You own the code you create but do not have the right to resell it. We offer a full refund within 7 days of purchase, as specified in our refund policy.
+1. Use of the Website
+1.1 **Eligibility**: By accessing the Website, you represent that you are at least 13 years of age. If you are under the age of 18, you may only use the Website with the consent of a parent or guardian.
 
-3. User Data and Privacy
+1.2 **Permitted Use**: You agree to use the Website only for lawful purposes and in compliance with these Terms. Any unauthorized use of the Website, including but not limited to scraping or exploiting our data, is prohibited.
 
-We collect and store user data, including name, email, and payment information, as necessary to provide our services. For details on how we handle your data, please refer to our Privacy Policy at https://shipfa.st/privacy-policy.
+1.3 **Changes to the Website**: We reserve the right to modify, suspend, or discontinue any part of the Website at any time without prior notice.
 
-4. Non-Personal Data Collection
+---
 
-We use web cookies to collect non-personal data for the purpose of improving our services and user experience.
+2. Data Collection and Privacy
+2.1 **User Data**: We do not collect any personal data from users.
+
+2.2 **Cookies and Non-Personal Data**: We use web cookies to enhance your browsing experience. For more details, please refer to our [Privacy Policy](https://trackkotc/privacy-policy).
+
+---
+
+3. Intellectual Property
+3.1 **Ownership**: All content on the Website, including text, graphics, logos, and software, is the property of Track KOTC and protected by applicable copyright and intellectual property laws.
+
+3.2 **Restrictions**: You may not reproduce, distribute, modify, or create derivative works from any content on the Website without our express written permission.
+
+---
+
+4. Limitation of Liability
+4.1 **No Warranties**: The Website and its content are provided “as is” and “as available” without any warranties of any kind, either express or implied.
+
+4.2 **Disclaimer**: Track KOTC shall not be liable for any indirect, incidental, consequential, or punitive damages arising from your use of the Website.
+
+4.3 **Third-Party Links**: The Website may contain links to third-party websites. We are not responsible for the content or practices of these websites.
+
+---
 
 5. Governing Law
+These Terms shall be governed by and construed in accordance with the laws of France. Any disputes arising from or relating to these Terms or the use of the Website shall be subject to the exclusive jurisdiction of the courts of France.
 
-These Terms are governed by the laws of France.
+---
 
-6. Updates to the Terms
+6. Updates to Terms of Service
+We may update these Terms from time to time to reflect changes in our practices, the law, or other operational reasons. We will notify users of significant changes by posting an updated version of the Terms on the Website with the “Last Updated” date.
 
-We may update these Terms from time to time. Users will be notified of any changes via email.
+---
 
-For any questions or concerns regarding these Terms of Service, please contact us at marc@shipfa.st.
+7. Contact Us
+If you have any questions or concerns about these Terms, please contact us at:
 
-Thank you for using ShipFast!`}
+**Email**: tyler.maschoff@gmail.com
+
+By using Track KOTC, you acknowledge that you have read, understood, and agreed to these Terms of Service.`}
         </pre>
       </div>
     </main>

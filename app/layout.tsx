@@ -11,6 +11,7 @@ import { Toaster } from "@/components/ui/toaster";
 
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-proivder";
+import Footer from "@/components/Footer";
 
 const font = Plus_Jakarta_Sans({ subsets: ["latin"] });
 
@@ -24,6 +25,26 @@ export const metadata = getSEOTags();
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Google AdSense Script */}
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"
+          strategy="afterInteractive"
+        ></Script>
+        <Script
+          id="adsense-init"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              (adsbygoogle = window.adsbygoogle || []).push({
+                google_ad_client: "ca-pub-6979411075342172",
+                enable_page_level_ads: true
+              });
+            `,
+          }}
+        ></Script>
+      </head>
       <body className={font.className}>
         <ThemeProvider
           attribute="class"
@@ -38,17 +59,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 <main>{children}</main>
               </div>
             </div>
+            <Footer />
           </div>
           <Toaster />
         </ThemeProvider>
         <Analytics />
         <SpeedInsights />
-        <Script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6979411075342172"
-          crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
       </body>
     </html>
   );
