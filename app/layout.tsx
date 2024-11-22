@@ -29,20 +29,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         {/* Google AdSense Script */}
         <Script
           async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"
+          src={
+            "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6979411075342172"
+          }
           strategy="afterInteractive"
-        ></Script>
-        <Script
-          id="adsense-init"
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
-              (adsbygoogle = window.adsbygoogle || []).push({
-                google_ad_client: "ca-pub-6979411075342172",
-                enable_page_level_ads: true
-              });
-            `,
-          }}
+          crossOrigin="anonymous"
         ></Script>
       </head>
       <body className={font.className}>
