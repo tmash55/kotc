@@ -87,7 +87,7 @@ export default function KOTCDashboard({
     if (typeof window !== "undefined") {
       return window.innerWidth < 768 ? "card" : "table";
     }
-    return "table";
+    return "card";
   });
   const [showStarredOnly, setShowStarredOnly] = useState(false);
   const [changedStats, setChangedStats] = useState<ChangedStats>({});
