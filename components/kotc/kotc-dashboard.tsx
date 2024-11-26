@@ -319,16 +319,39 @@ export default function KOTCDashboard({
       key={player.personId}
       className={`overflow-hidden transition-all duration-300 ${getCardClassName(
         rank
-      )}`}
+      )} relative`}
     >
-      <CardContent className="p-4">
+      {rank === 1 && (
+        <div
+          className="absolute inset-0 flex items-center justify-center"
+          style={{
+            opacity: 0.05,
+            transform: "rotate(-10deg)",
+            pointerEvents: "none",
+          }}
+        >
+          <Crown
+            className="w-[200%] h-[200%] text-yellow-600/50"
+            strokeWidth={0.5}
+          />
+        </div>
+      )}
+      <CardContent className="p-4 relative z-10">
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-start space-x-2">
-            <div className="mt-1">{getTrophyIcon(rank)}</div>
+            <div className="mt-1">
+              {rank === 1 ? (
+                <Crown className="h-5 w-5 text-yellow-800 dark:text-yellow-400" />
+              ) : (
+                <span className="text-lg font-semibold">{rank}</span>
+              )}
+            </div>
             <div>
               <h2 className="font-bold text-base text-gray-900 dark:text-gray-100 flex items-center">
-                <OnCourtIndicator isOnCourt={player.oncourt} />
                 {player.name}
+                <span className="ml-2">
+                  <OnCourtIndicator isOnCourt={player.oncourt} />
+                </span>
               </h2>
               <p className="text-xs text-gray-600 dark:text-gray-400">
                 {player.matchup}
@@ -405,7 +428,6 @@ export default function KOTCDashboard({
             />
             <Search className="h-4 w-4 text-muted-foreground absolute left-3 top-1/2 transform -translate-y-1/2" />
           </div>
-
           {/* Mobile Filter Sheet */}
           <Sheet>
             <SheetTrigger asChild>
@@ -448,7 +470,7 @@ export default function KOTCDashboard({
                     <Button
                       variant={viewMode === "card" ? "default" : "outline"}
                       size="sm"
-                      onClick={() => setViewModeWithPreference("card")}
+                      onClick={() => setViewMode("card")}
                     >
                       <LayoutGrid className="h-4 w-4 mr-2" />
                       Cards
@@ -456,7 +478,7 @@ export default function KOTCDashboard({
                     <Button
                       variant={viewMode === "table" ? "default" : "outline"}
                       size="sm"
-                      onClick={() => setViewModeWithPreference("table")}
+                      onClick={() => setViewMode("table")}
                     >
                       <TableIcon className="h-4 w-4 mr-2" />
                       Table
@@ -467,7 +489,6 @@ export default function KOTCDashboard({
             </SheetContent>
           </Sheet>
         </div>
-
         <div className="flex items-center justify-between text-sm text-muted-foreground">
           <div className="hidden md:flex items-center">
             <RefreshCcw className="h-4 w-4 mr-2 animate-spin" />
@@ -496,7 +517,7 @@ export default function KOTCDashboard({
                     <Button
                       variant={viewMode === "card" ? "default" : "outline"}
                       size="icon"
-                      onClick={() => setViewModeWithPreference("card")}
+                      onClick={() => setViewMode("card")}
                     >
                       <LayoutGrid className="h-4 w-4" />
                       <span className="sr-only">Card view</span>
@@ -511,7 +532,7 @@ export default function KOTCDashboard({
                     <Button
                       variant={viewMode === "table" ? "default" : "outline"}
                       size="icon"
-                      onClick={() => setViewModeWithPreference("table")}
+                      onClick={() => setViewMode("table")}
                     >
                       <TableIcon className="h-4 w-4" />
                       <span className="sr-only">Table view</span>
@@ -526,7 +547,6 @@ export default function KOTCDashboard({
           </div>
         </div>
       </div>
-
       {!allGamesFinal && (
         <Alert>
           <AlertTitle>Games in Progress</AlertTitle>
@@ -535,7 +555,6 @@ export default function KOTCDashboard({
           </AlertDescription>
         </Alert>
       )}
-
       {viewMode === "card" ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {sortedPlayers.map((player, index) => (
@@ -586,8 +605,10 @@ export default function KOTCDashboard({
                     </TableCell>
                     <TableCell className="font-semibold">
                       <div className="flex items-center">
-                        <OnCourtIndicator isOnCourt={player.oncourt} />
                         {player.name}
+                        <span className="ml-2">
+                          <OnCourtIndicator isOnCourt={player.oncourt} />
+                        </span>
                       </div>
                     </TableCell>
                     <TableCell className="hidden md:table-cell">
@@ -615,14 +636,6 @@ export default function KOTCDashboard({
           </Table>
         </div>
       )}
-
-      {/* Mobile Refresh Button */}
-      <Button
-        className="fixed bottom-4 right-4 shadow-lg md:hidden rounded-full size-14"
-        onClick={() => window.location.reload()}
-      >
-        <RefreshCcw className="h-6 w-6" />
-      </Button>
     </div>
   );
 }
