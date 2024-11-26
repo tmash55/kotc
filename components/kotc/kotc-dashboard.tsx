@@ -7,12 +7,23 @@ import {
   LayoutGrid,
   TableIcon,
   RefreshCcw,
+  Star,
+  ChevronRight,
+  Filter,
+  Crown,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import {
   Table,
   TableBody,
@@ -27,21 +38,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-
-type Player = {
-  personId: string;
-  name: string;
-  matchup: string;
-  points: number;
-  rebounds: number;
-  assists: number;
-  pra: number;
-  gameStatus: string;
-  gameClock: string;
-  period: number;
-  gameDate: string;
-  oncourt: boolean; // New property
-};
+import { Player } from "@/types/player";
 
 type ViewMode = "card" | "table";
 
@@ -53,6 +50,12 @@ type KOTCDashboardProps = {
 
 type ChangedStats = {
   [key: string]: Set<"points" | "rebounds" | "assists" | "pra" | "gameStatus">;
+};
+const getRankDisplay = (rank: number) => {
+  if (rank === 1) {
+    return <Crown className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />;
+  }
+  return <span>{rank}</span>;
 };
 
 const OnCourtIndicator = ({ isOnCourt }: { isOnCourt: boolean }) =>
@@ -69,14 +72,34 @@ const OnCourtIndicator = ({ isOnCourt }: { isOnCourt: boolean }) =>
     </TooltipProvider>
   ) : null;
 
+const getTrueRank = (player: Player, allPlayers: Player[]) => {
+  return allPlayers.findIndex((p) => p.personId === player.personId) + 1;
+};
+
 export default function KOTCDashboard({
   players,
   allGamesFinal,
   lastUpdated,
 }: KOTCDashboardProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [viewMode, setViewMode] = useState<ViewMode>("table");
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    // Default to card view on mobile
+    if (typeof window !== "undefined") {
+      return window.innerWidth < 768 ? "card" : "table";
+    }
+    return "table";
+  });
+  const [showStarredOnly, setShowStarredOnly] = useState(false);
   const [changedStats, setChangedStats] = useState<ChangedStats>({});
+  const [starredPlayers, setStarredPlayers] = useState<Set<string>>(() => {
+    // Initialize from local storage
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("starredPlayers");
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    }
+    return new Set();
+  });
+  const [hideFinishedLowerRank, setHideFinishedLowerRank] = useState(false);
   const prevPlayersRef = useRef<Player[]>([]);
 
   useEffect(() => {
@@ -111,11 +134,50 @@ export default function KOTCDashboard({
     }
   }, [players]);
 
-  const filteredPlayers = players.filter(
-    (player) =>
+  useEffect(() => {
+    // Update local storage when starredPlayers changes
+    localStorage.setItem(
+      "starredPlayers",
+      JSON.stringify(Array.from(starredPlayers))
+    );
+  }, [starredPlayers]);
+
+  const filteredPlayers = players.filter((player) => {
+    const matchesSearch =
       player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      player.matchup.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+      player.matchup.toLowerCase().includes(searchTerm.toLowerCase());
+    const isStarred = starredPlayers.has(player.personId);
+    const trueRank = getTrueRank(player, players);
+    const isTopThree = trueRank <= 3;
+    const isNotFinished =
+      player.gameStatus !== "Final" && player.gameStatus !== "Final/OT";
+
+    return (
+      matchesSearch &&
+      (!showStarredOnly || isStarred) &&
+      (!hideFinishedLowerRank || isTopThree || isNotFinished)
+    );
+  });
+
+  const toggleStarPlayer = (playerId: string) => {
+    setStarredPlayers((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(playerId)) {
+        newSet.delete(playerId);
+      } else {
+        newSet.add(playerId);
+      }
+      return newSet;
+    });
+  };
+
+  const sortedPlayers = [...filteredPlayers].sort((a, b) => {
+    if (starredPlayers.has(a.personId) && !starredPlayers.has(b.personId))
+      return -1;
+    if (!starredPlayers.has(a.personId) && starredPlayers.has(b.personId))
+      return 1;
+    return getTrueRank(a, players) - getTrueRank(b, players);
+  });
 
   const getRankIcon = (index: number) => {
     if (index === 0) return <Trophy className="h-5 w-5 text-yellow-500" />;
@@ -128,9 +190,7 @@ export default function KOTCDashboard({
   const getStatusBadge = (player: Player) => {
     let displayStatus = player.gameStatus;
 
-    // Format game clock if it exists and game is in progress
     if (player.gameClock && player.period) {
-      // Remove the "PT" prefix and ".00S" suffix and convert to minutes:seconds
       const clockMatch = player.gameClock.match(/PT(\d+)M(\d+)\.00S/);
       if (clockMatch) {
         const [_, minutes, seconds] = clockMatch;
@@ -183,45 +243,28 @@ export default function KOTCDashboard({
     switch (rank) {
       case 1:
         return (
-          <Trophy className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
+          <Crown className="h-6 w-6 text-yellow-400 dark:text-yellow-400" />
         );
-      case 2:
-        return <Trophy className="h-6 w-6 text-gray-500 dark:text-gray-400" />;
-      case 3:
-        return (
-          <Trophy className="h-6 w-6 text-amber-600 dark:text-amber-500" />
-        );
+
       default:
         return null;
     }
   };
-  const getRowClassName = (index: number) => {
-    switch (index) {
-      case 0:
-        return "bg-yellow-100 dark:bg-yellow-900 text-yellow-900 dark:text-yellow-100";
-      case 1:
-        return "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100";
-      case 2:
-        return "bg-amber-100 dark:bg-amber-900 text-amber-900 dark:text-amber-100";
-      default:
-        return "bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-900";
-    }
-  };
+
   const getTableRowClassName = (rank: number) => {
-    const baseClasses = "transition-colors duration-200";
+    const baseClasses = "transition-all duration-200";
 
     switch (rank) {
       case 1:
-        return `${baseClasses} bg-yellow-50 dark:bg-yellow-900/40 hover:bg-yellow-100/80 dark:hover:bg-yellow-800/50`;
+        return `${baseClasses} bg-gradient-to-r from-yellow-300 to-yellow-100 dark:from-yellow-600 dark:to-yellow-900 shadow-md shadow-yellow-200/50 dark:shadow-yellow-900/50 hover:shadow-lg hover:from-yellow-400 hover:to-yellow-200 dark:hover:from-yellow-500 dark:hover:to-yellow-800`;
       case 2:
-        return `${baseClasses} bg-gray-50 dark:bg-gray-400/20 hover:bg-gray-100/80 dark:hover:bg-gray-400/30`;
+        return `${baseClasses} bg-gradient-to-r from-gray-200 to-gray-100 dark:from-gray-700 dark:to-gray-800 shadow-md shadow-gray-200/50 dark:shadow-gray-900/50 hover:shadow-lg hover:from-gray-300 hover:to-gray-200 dark:hover:from-gray-600 dark:hover:to-gray-700`;
       case 3:
-        return `${baseClasses} bg-amber-50 dark:bg-amber-900/40 hover:bg-amber-100/80 dark:hover:bg-amber-800/50`;
+        return `${baseClasses} bg-gradient-to-r from-amber-200 to-amber-100 dark:from-amber-700 dark:to-amber-800 shadow-md shadow-amber-200/50 dark:shadow-amber-900/50 hover:shadow-lg hover:from-amber-300 hover:to-amber-200 dark:hover:from-amber-600 dark:hover:to-amber-700`;
       default:
-        return `${baseClasses} bg-white dark:bg-gray-950 hover:bg-gray-100/80 dark:hover:bg-gray-900`;
+        return `${baseClasses} bg-white dark:bg-gray-950 hover:bg-gray-50 dark:hover:bg-gray-900 hover:shadow-sm`;
     }
   };
-
   const StatDisplay = ({
     label,
     value,
@@ -247,56 +290,242 @@ export default function KOTCDashboard({
     </div>
   );
 
-  return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-        <div className="relative max-w-sm w-full">
-          <Input
-            placeholder="Search player"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 w-full"
+  const StarButton = ({ playerId }: { playerId: string }) => (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={() => toggleStarPlayer(playerId)}
+      className={`p-0 h-6 w-6 ${
+        starredPlayers.has(playerId) ? "text-yellow-500" : "text-gray-400"
+      }`}
+    >
+      <Star className="h-4 w-4" />
+    </Button>
+  );
+
+  // Mobile-optimized card view
+  const PlayerCard = ({ player, rank }: { player: Player; rank: number }) => (
+    <Card
+      key={player.personId}
+      className={`overflow-hidden transition-all duration-300 ${getCardClassName(
+        rank
+      )} relative`}
+    >
+      {rank === 1 && (
+        <div
+          className="absolute inset-0 flex items-center justify-center"
+          style={{
+            opacity: 0.05,
+            transform: "rotate(-10deg)",
+            pointerEvents: "none",
+          }}
+        >
+          <Crown
+            className="w-[200%] h-[200%] text-yellow-600/50"
+            strokeWidth={0.5}
           />
-          <Search className="h-4 w-4 text-muted-foreground absolute left-3 top-1/2 transform -translate-y-1/2" />
         </div>
-        <div className="flex items-center space-x-4">
-          <TooltipProvider>
-            <div className="flex items-center space-x-2">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant={viewMode === "card" ? "default" : "outline"}
-                    size="icon"
-                    onClick={() => setViewMode("card")}
-                  >
-                    <LayoutGrid className="h-4 w-4" />
-                    <span className="sr-only">Card view</span>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Card view</p>
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant={viewMode === "table" ? "default" : "outline"}
-                    size="icon"
-                    onClick={() => setViewMode("table")}
-                  >
-                    <TableIcon className="h-4 w-4" />
-                    <span className="sr-only">Table view</span>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Table view</p>
-                </TooltipContent>
-              </Tooltip>
+      )}
+      <CardContent className="p-4 relative z-10">
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex items-start space-x-2">
+            <div className="mt-1">
+              {rank === 1 ? (
+                <Crown className="h-5 w-5 text-yellow-800 dark:text-yellow-400" />
+              ) : (
+                <span className="text-lg font-semibold">{rank}</span>
+              )}
             </div>
-          </TooltipProvider>
-          <div className="flex items-center text-sm text-muted-foreground">
+            <div>
+              <h2 className="font-bold text-base text-gray-900 dark:text-gray-100 flex items-center">
+                {player.name}
+                <span className="ml-2">
+                  <OnCourtIndicator isOnCourt={player.oncourt} />
+                </span>
+              </h2>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
+                {player.matchup}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <StarButton playerId={player.personId} />
+            {getStatusBadge(player)}
+          </div>
+        </div>
+        <div className="grid grid-cols-4 gap-2 text-center">
+          <StatDisplay
+            label="PRA"
+            value={player.pra}
+            playerId={player.personId}
+            statKey="pra"
+          />
+          <StatDisplay
+            label="PTS"
+            value={player.points}
+            playerId={player.personId}
+            statKey="points"
+          />
+          <StatDisplay
+            label="REB"
+            value={player.rebounds}
+            playerId={player.personId}
+            statKey="rebounds"
+          />
+          <StatDisplay
+            label="AST"
+            value={player.assists}
+            playerId={player.personId}
+            statKey="assists"
+          />
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  useEffect(() => {
+    const handleResize = () => {
+      setViewMode(window.innerWidth < 768 ? "card" : "table");
+    };
+
+    window.addEventListener("resize", handleResize);
+    handleResize(); // Set initial view mode
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  return (
+    <div className="space-y-4">
+      {/* Mobile-optimized header */}
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 pb-4 space-y-4">
+        <div className="flex items-center justify-between gap-2">
+          <div className="relative flex-1">
+            <Input
+              placeholder="Search player"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+            <Search className="h-4 w-4 text-muted-foreground absolute left-3 top-1/2 transform -translate-y-1/2" />
+          </div>
+
+          {/* Mobile Filter Sheet */}
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="icon" className="md:hidden">
+                <Filter className="h-4 w-4" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="bottom" className="h-[40vh]">
+              <SheetHeader>
+                <SheetTitle>Filters</SheetTitle>
+              </SheetHeader>
+              <div className="py-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Show Starred Only</span>
+                  <Button
+                    variant={showStarredOnly ? "default" : "outline"}
+                    onClick={() => setShowStarredOnly(!showStarredOnly)}
+                    size="sm"
+                  >
+                    {showStarredOnly ? "On" : "Off"}
+                  </Button>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">
+                    Hide Finished (Not Top 3)
+                  </span>
+                  <Button
+                    variant={hideFinishedLowerRank ? "default" : "outline"}
+                    onClick={() =>
+                      setHideFinishedLowerRank(!hideFinishedLowerRank)
+                    }
+                    size="sm"
+                  >
+                    {hideFinishedLowerRank ? "On" : "Off"}
+                  </Button>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">View Mode</span>
+                  <div className="flex gap-2">
+                    <Button
+                      variant={viewMode === "card" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setViewMode("card")}
+                    >
+                      <LayoutGrid className="h-4 w-4 mr-2" />
+                      Cards
+                    </Button>
+                    <Button
+                      variant={viewMode === "table" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setViewMode("table")}
+                    >
+                      <TableIcon className="h-4 w-4 mr-2" />
+                      Table
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
+
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
+          <div className="hidden md:flex items-center">
             <RefreshCcw className="h-4 w-4 mr-2 animate-spin" />
-            Last updated: {lastUpdated}
+            Updated: {lastUpdated}
+          </div>
+          {/* Desktop view controls */}
+          <div className="hidden md:flex items-center space-x-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowStarredOnly(!showStarredOnly)}
+            >
+              {showStarredOnly ? "Show All" : "Show Starred"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setHideFinishedLowerRank(!hideFinishedLowerRank)}
+            >
+              {hideFinishedLowerRank ? "Show All" : "Hide Finished (Not Top 3)"}
+            </Button>
+            <TooltipProvider>
+              <div className="flex items-center space-x-2">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant={viewMode === "card" ? "default" : "outline"}
+                      size="icon"
+                      onClick={() => setViewMode("card")}
+                    >
+                      <LayoutGrid className="h-4 w-4" />
+                      <span className="sr-only">Card view</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Card view</p>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant={viewMode === "table" ? "default" : "outline"}
+                      size="icon"
+                      onClick={() => setViewMode("table")}
+                    >
+                      <TableIcon className="h-4 w-4" />
+                      <span className="sr-only">Table view</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Table view</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </TooltipProvider>
           </div>
         </div>
       </div>
@@ -311,183 +540,74 @@ export default function KOTCDashboard({
       )}
 
       {viewMode === "card" ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {filteredPlayers.map((player) => {
-            const rank =
-              players.findIndex((p) => p.personId === player.personId) + 1;
-            return (
-              <Card
-                key={player.personId}
-                className={`overflow-hidden transition-all duration-300 ${getCardClassName(
-                  rank
-                )}`}
-              >
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-start space-x-3">
-                      <div className="mt-1">{getTrophyIcon(rank)}</div>
-                      <div>
-                        <h2 className="font-bold text-lg text-gray-900 dark:text-gray-100 flex items-center">
-                          <OnCourtIndicator isOnCourt={player.oncourt} />
-                          {player.name}
-                        </h2>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {player.matchup}
-                        </p>
-                      </div>
-                    </div>
-                    {getStatusBadge(player)}
-                  </div>
-                  <div className="grid grid-cols-4 gap-4">
-                    <div className="text-center">
-                      <div
-                        className={`text-2xl font-bold mb-1 ${
-                          changedStats[player.personId]?.has("pra")
-                            ? "text-green-600 dark:text-green-400 animate-pulse"
-                            : "text-gray-900 dark:text-gray-100"
-                        }`}
-                      >
-                        {player.pra}
-                      </div>
-                      <div className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                        PRA
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <div
-                        className={`text-2xl font-bold mb-1 ${
-                          changedStats[player.personId]?.has("points")
-                            ? "text-green-600 dark:text-green-400 animate-pulse"
-                            : "text-gray-900 dark:text-gray-100"
-                        }`}
-                      >
-                        {player.points}
-                      </div>
-                      <div className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                        PTS
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <div
-                        className={`text-2xl font-bold mb-1 ${
-                          changedStats[player.personId]?.has("rebounds")
-                            ? "text-green-600 dark:text-green-400 animate-pulse"
-                            : "text-gray-900 dark:text-gray-100"
-                        }`}
-                      >
-                        {player.rebounds}
-                      </div>
-                      <div className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                        REB
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <div
-                        className={`text-2xl font-bold mb-1 ${
-                          changedStats[player.personId]?.has("assists")
-                            ? "text-green-600 dark:text-green-400 animate-pulse"
-                            : "text-gray-900 dark:text-gray-100"
-                        }`}
-                      >
-                        {player.assists}
-                      </div>
-                      <div className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                        AST
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {sortedPlayers.map((player, index) => (
+            <PlayerCard
+              key={player.personId}
+              player={player}
+              rank={getTrueRank(player, players)}
+            />
+          ))}
         </div>
       ) : (
-        <div className="rounded-md border dark:border-gray-800 overflow-hidden">
+        <div className="overflow-x-auto rounded-md border dark:border-gray-800">
           <Table>
             <TableHeader>
               <TableRow className="bg-gray-100 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800">
-                <TableHead className="text-gray-900 dark:text-gray-100 font-semibold">
-                  Rank
-                </TableHead>
-                <TableHead className="text-gray-900 dark:text-gray-100 font-semibold">
-                  Name
-                </TableHead>
-                <TableHead className="text-gray-900 dark:text-gray-100 font-semibold">
-                  Matchup
-                </TableHead>
-                <TableHead className="text-right text-gray-900 dark:text-gray-100 font-semibold">
-                  PRA
-                </TableHead>
-                <TableHead className="text-right text-gray-900 dark:text-gray-100 font-semibold">
+                <TableHead className="w-[50px]">Star</TableHead>
+                <TableHead className="w-[70px]">Rank</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead className="hidden md:table-cell">Matchup</TableHead>
+                <TableHead className="text-right">PRA</TableHead>
+                <TableHead className="text-right hidden sm:table-cell">
                   PTS
                 </TableHead>
-                <TableHead className="text-right text-gray-900 dark:text-gray-100 font-semibold">
+                <TableHead className="text-right hidden sm:table-cell">
                   REB
                 </TableHead>
-                <TableHead className="text-right text-gray-900 dark:text-gray-100 font-semibold">
+                <TableHead className="text-right hidden sm:table-cell">
                   AST
                 </TableHead>
-                <TableHead className="text-right text-gray-900 dark:text-gray-100 font-semibold">
-                  Status
-                </TableHead>
+                <TableHead className="text-right">Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredPlayers.map((player) => {
-                const rank =
-                  players.findIndex((p) => p.personId === player.personId) + 1;
+              {sortedPlayers.map((player, index) => {
+                const rank = getTrueRank(player, players);
                 return (
                   <TableRow
                     key={player.personId}
                     className={getTableRowClassName(rank)}
                   >
-                    <TableCell className="font-medium">
-                      <div className="flex items-center space-x-2">
-                        {getTrophyIcon(rank)}
-                        <span>{rank}</span>
+                    <TableCell className="w-[50px]">
+                      <StarButton playerId={player.personId} />
+                    </TableCell>
+                    <TableCell className="w-[70px]">
+                      <div className="flex items-center justify-center">
+                        {getRankDisplay(rank)}
                       </div>
                     </TableCell>
                     <TableCell className="font-semibold">
                       <div className="flex items-center">
-                        <OnCourtIndicator isOnCourt={player.oncourt} />
                         {player.name}
+                        <span className="ml-2">
+                          <OnCourtIndicator isOnCourt={player.oncourt} />
+                        </span>
                       </div>
                     </TableCell>
-                    <TableCell>{player.matchup}</TableCell>
-                    <TableCell
-                      className={`text-right font-bold ${
-                        changedStats[player.personId]?.has("pra")
-                          ? "text-green-600 dark:text-green-400 animate-pulse"
-                          : ""
-                      }`}
-                    >
+                    <TableCell className="hidden md:table-cell">
+                      {player.matchup}
+                    </TableCell>
+                    <TableCell className="text-right font-bold">
                       {player.pra}
                     </TableCell>
-                    <TableCell
-                      className={`text-right ${
-                        changedStats[player.personId]?.has("points")
-                          ? "text-green-600 dark:text-green-400 animate-pulse"
-                          : ""
-                      }`}
-                    >
+                    <TableCell className="text-right hidden sm:table-cell">
                       {player.points}
                     </TableCell>
-                    <TableCell
-                      className={`text-right ${
-                        changedStats[player.personId]?.has("rebounds")
-                          ? "text-green-600 dark:text-green-400 animate-pulse"
-                          : ""
-                      }`}
-                    >
+                    <TableCell className="text-right hidden sm:table-cell">
                       {player.rebounds}
                     </TableCell>
-                    <TableCell
-                      className={`text-right ${
-                        changedStats[player.personId]?.has("assists")
-                          ? "text-green-600 dark:text-green-400 animate-pulse"
-                          : ""
-                      }`}
-                    >
+                    <TableCell className="text-right hidden sm:table-cell">
                       {player.assists}
                     </TableCell>
                     <TableCell className="text-right">
