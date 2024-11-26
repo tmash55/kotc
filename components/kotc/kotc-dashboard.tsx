@@ -51,12 +51,6 @@ type KOTCDashboardProps = {
 type ChangedStats = {
   [key: string]: Set<"points" | "rebounds" | "assists" | "pra" | "gameStatus">;
 };
-const getRankDisplay = (rank: number) => {
-  if (rank === 1) {
-    return <Crown className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />;
-  }
-  return <span>{rank}</span>;
-};
 
 const OnCourtIndicator = ({ isOnCourt }: { isOnCourt: boolean }) =>
   isOnCourt ? (
@@ -76,6 +70,13 @@ const getTrueRank = (player: Player, allPlayers: Player[]) => {
   return allPlayers.findIndex((p) => p.personId === player.personId) + 1;
 };
 
+const getRankDisplay = (rank: number) => {
+  if (rank === 1) {
+    return <Crown className="h-5 w-5 text-yellow-600" />;
+  }
+  return <span>{rank}</span>;
+};
+
 export default function KOTCDashboard({
   players,
   allGamesFinal,
@@ -91,14 +92,6 @@ export default function KOTCDashboard({
   });
   const [showStarredOnly, setShowStarredOnly] = useState(false);
   const [changedStats, setChangedStats] = useState<ChangedStats>({});
-  const [userViewPreference, setUserViewPreference] = useState<ViewMode | null>(
-    null
-  );
-  const setViewModeWithPreference = (mode: ViewMode) => {
-    setViewMode(mode);
-    setUserViewPreference(mode);
-  };
-
   const [starredPlayers, setStarredPlayers] = useState<Set<string>>(() => {
     // Initialize from local storage
     if (typeof window !== "undefined") {
@@ -108,21 +101,10 @@ export default function KOTCDashboard({
     return new Set();
   });
   const [hideFinishedLowerRank, setHideFinishedLowerRank] = useState(false);
+  const [userViewPreference, setUserViewPreference] = useState<ViewMode | null>(
+    null
+  );
   const prevPlayersRef = useRef<Player[]>([]);
-
-  useEffect(() => {
-    const handleResize = () => {
-      const newDefaultView = window.innerWidth < 768 ? "card" : "table";
-      if (!userViewPreference) {
-        setViewMode(newDefaultView);
-      }
-    };
-
-    window.addEventListener("resize", handleResize);
-    handleResize(); // Set initial view mode
-
-    return () => window.removeEventListener("resize", handleResize);
-  }, [userViewPreference]);
 
   useEffect(() => {
     const newChangedStats: ChangedStats = {};
@@ -265,9 +247,14 @@ export default function KOTCDashboard({
     switch (rank) {
       case 1:
         return (
-          <Crown className="h-6 w-6 text-yellow-400 dark:text-yellow-400" />
+          <Trophy className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
         );
-
+      case 2:
+        return <Trophy className="h-6 w-6 text-gray-500 dark:text-gray-400" />;
+      case 3:
+        return (
+          <Trophy className="h-6 w-6 text-amber-600 dark:text-amber-500" />
+        );
       default:
         return null;
     }
@@ -287,6 +274,7 @@ export default function KOTCDashboard({
         return `${baseClasses} bg-white dark:bg-gray-950 hover:bg-gray-50 dark:hover:bg-gray-900 hover:shadow-sm`;
     }
   };
+
   const StatDisplay = ({
     label,
     value,
@@ -331,39 +319,16 @@ export default function KOTCDashboard({
       key={player.personId}
       className={`overflow-hidden transition-all duration-300 ${getCardClassName(
         rank
-      )} relative`}
+      )}`}
     >
-      {rank === 1 && (
-        <div
-          className="absolute inset-0 flex items-center justify-center"
-          style={{
-            opacity: 0.05,
-            transform: "rotate(-10deg)",
-            pointerEvents: "none",
-          }}
-        >
-          <Crown
-            className="w-[200%] h-[200%] text-yellow-600/50"
-            strokeWidth={0.5}
-          />
-        </div>
-      )}
-      <CardContent className="p-4 relative z-10">
+      <CardContent className="p-4">
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-start space-x-2">
-            <div className="mt-1">
-              {rank === 1 ? (
-                <Crown className="h-5 w-5 text-yellow-800 dark:text-yellow-400" />
-              ) : (
-                <span className="text-lg font-semibold">{rank}</span>
-              )}
-            </div>
+            <div className="mt-1">{getTrophyIcon(rank)}</div>
             <div>
               <h2 className="font-bold text-base text-gray-900 dark:text-gray-100 flex items-center">
+                <OnCourtIndicator isOnCourt={player.oncourt} />
                 {player.name}
-                <span className="ml-2">
-                  <OnCourtIndicator isOnCourt={player.oncourt} />
-                </span>
               </h2>
               <p className="text-xs text-gray-600 dark:text-gray-400">
                 {player.matchup}
@@ -405,16 +370,26 @@ export default function KOTCDashboard({
     </Card>
   );
 
+  const setViewModeWithPreference = (mode: ViewMode) => {
+    setViewMode(mode);
+    setUserViewPreference(mode);
+  };
+
   useEffect(() => {
     const handleResize = () => {
-      setViewMode(window.innerWidth < 768 ? "card" : "table");
+      const newDefaultView = window.innerWidth < 768 ? "card" : "table";
+      if (!userViewPreference) {
+        setViewMode(newDefaultView);
+      }
     };
 
     window.addEventListener("resize", handleResize);
     handleResize(); // Set initial view mode
 
     return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  }, [userViewPreference]);
+
+  const finalPlayers = sortedPlayers;
 
   return (
     <div className="space-y-4">
@@ -473,7 +448,7 @@ export default function KOTCDashboard({
                     <Button
                       variant={viewMode === "card" ? "default" : "outline"}
                       size="sm"
-                      onClick={() => setViewMode("card")}
+                      onClick={() => setViewModeWithPreference("card")}
                     >
                       <LayoutGrid className="h-4 w-4 mr-2" />
                       Cards
@@ -481,7 +456,7 @@ export default function KOTCDashboard({
                     <Button
                       variant={viewMode === "table" ? "default" : "outline"}
                       size="sm"
-                      onClick={() => setViewMode("table")}
+                      onClick={() => setViewModeWithPreference("table")}
                     >
                       <TableIcon className="h-4 w-4 mr-2" />
                       Table
@@ -521,7 +496,7 @@ export default function KOTCDashboard({
                     <Button
                       variant={viewMode === "card" ? "default" : "outline"}
                       size="icon"
-                      onClick={() => setViewMode("card")}
+                      onClick={() => setViewModeWithPreference("card")}
                     >
                       <LayoutGrid className="h-4 w-4" />
                       <span className="sr-only">Card view</span>
@@ -536,7 +511,7 @@ export default function KOTCDashboard({
                     <Button
                       variant={viewMode === "table" ? "default" : "outline"}
                       size="icon"
-                      onClick={() => setViewMode("table")}
+                      onClick={() => setViewModeWithPreference("table")}
                     >
                       <TableIcon className="h-4 w-4" />
                       <span className="sr-only">Table view</span>
@@ -611,10 +586,8 @@ export default function KOTCDashboard({
                     </TableCell>
                     <TableCell className="font-semibold">
                       <div className="flex items-center">
+                        <OnCourtIndicator isOnCourt={player.oncourt} />
                         {player.name}
-                        <span className="ml-2">
-                          <OnCourtIndicator isOnCourt={player.oncourt} />
-                        </span>
                       </div>
                     </TableCell>
                     <TableCell className="hidden md:table-cell">
@@ -642,6 +615,14 @@ export default function KOTCDashboard({
           </Table>
         </div>
       )}
+
+      {/* Mobile Refresh Button */}
+      <Button
+        className="fixed bottom-4 right-4 shadow-lg md:hidden rounded-full size-14"
+        onClick={() => window.location.reload()}
+      >
+        <RefreshCcw className="h-6 w-6" />
+      </Button>
     </div>
   );
 }
