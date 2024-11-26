@@ -91,6 +91,14 @@ export default function KOTCDashboard({
   });
   const [showStarredOnly, setShowStarredOnly] = useState(false);
   const [changedStats, setChangedStats] = useState<ChangedStats>({});
+  const [userViewPreference, setUserViewPreference] = useState<ViewMode | null>(
+    null
+  );
+  const setViewModeWithPreference = (mode: ViewMode) => {
+    setViewMode(mode);
+    setUserViewPreference(mode);
+  };
+
   const [starredPlayers, setStarredPlayers] = useState<Set<string>>(() => {
     // Initialize from local storage
     if (typeof window !== "undefined") {
@@ -101,6 +109,20 @@ export default function KOTCDashboard({
   });
   const [hideFinishedLowerRank, setHideFinishedLowerRank] = useState(false);
   const prevPlayersRef = useRef<Player[]>([]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const newDefaultView = window.innerWidth < 768 ? "card" : "table";
+      if (!userViewPreference) {
+        setViewMode(newDefaultView);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    handleResize(); // Set initial view mode
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, [userViewPreference]);
 
   useEffect(() => {
     const newChangedStats: ChangedStats = {};
