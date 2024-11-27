@@ -41,7 +41,9 @@ export function WelcomeModal() {
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <p className="text-base">Here's how to use our key features:</p>
+            <p className="text-base">
+              Here&apos;s how to use our key features:
+            </p>
             <ul className="space-y-4 list-none">
               <li className="flex gap-3">
                 <span className="text-base">•</span>
