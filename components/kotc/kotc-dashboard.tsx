@@ -72,7 +72,7 @@ const getTrueRank = (player: Player, allPlayers: Player[]) => {
 
 const getRankDisplay = (rank: number) => {
   if (rank === 1) {
-    return <Crown className="h-5 w-5 text-yellow-600" />;
+    return <Crown className="h-5 w-5 text-yellow-600 dark:text-yellow-300" />;
   }
   return <span>{rank}</span>;
 };
@@ -643,12 +643,6 @@ export default function KOTCDashboard({
       )}
 
       {/* Mobile Refresh Button */}
-      <Button
-        className="fixed bottom-4 right-4 shadow-lg md:hidden rounded-full size-14"
-        onClick={() => window.location.reload()}
-      >
-        <RefreshCcw className="h-6 w-6" />
-      </Button>
     </div>
   );
 }

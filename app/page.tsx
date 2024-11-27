@@ -2,68 +2,44 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import useSWR from "swr";
 import KOTCDashboard from "@/components/kotc/kotc-dashboard";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import ScheduledGames from "@/components/kotc/ScheduledGames";
-import { Button } from "@/components/ui/button";
-import { RefreshCw } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DraftKingsPRA from "@/components/kotc/DraftKingsPRA";
+import { WelcomeModal } from "@/components/WelcomeModal";
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function Home() {
-  const [players, setPlayers] = useState([]);
-  const [games, setGames] = useState([]);
-  const [allGamesFinal, setAllGamesFinal] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState("");
-  const [error, setError] = useState(null);
-  const [gamesScheduled, setGamesScheduled] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isManualRefresh, setIsManualRefresh] = useState(true);
   const [activeTab, setActiveTab] = useState("odds");
+  const [lastUpdated, setLastUpdated] = useState(
+    new Date().toLocaleTimeString()
+  );
   const isInitialMount = useRef(true);
 
-  const fetchData = useCallback(async (manual = false) => {
-    if (manual) {
-      setIsLoading(true);
-      setIsManualRefresh(true);
-    }
-    try {
-      const response = await fetch("/api/allPlayers");
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-
-      if (data.gamesScheduled && (!data.players || data.players.length === 0)) {
-        setGamesScheduled(true);
-        setGames(data.games);
-      } else {
-        setGamesScheduled(false);
-        setPlayers(data.players); // Update this line to set all players
-        setAllGamesFinal(data.allGamesFinal);
-      }
-
-      setLastUpdated(new Date().toLocaleTimeString());
-    } catch (e) {
-      console.error("Fetching error:", e);
-      setError(e.message);
-    } finally {
-      if (manual) {
-        setIsLoading(false);
-      }
-      setIsManualRefresh(false);
-    }
+  const updateLastUpdated = useCallback(() => {
+    setLastUpdated(new Date().toLocaleTimeString());
   }, []);
+
+  const { data, error, isValidating } = useSWR("/api/allPlayers", fetcher, {
+    refreshInterval: 20000,
+    revalidateOnFocus: false,
+    dedupingInterval: 10000,
+    onSuccess: updateLastUpdated,
+  });
+
+  const players = data?.players || [];
+  const games = data?.games || [];
+  const allGamesFinal = data?.allGamesFinal || false;
+  const gamesScheduled = data?.gamesScheduled || false;
 
   useEffect(() => {
     if (isInitialMount.current) {
-      fetchData(true);
       isInitialMount.current = false;
-    } else {
-      const intervalId = setInterval(() => fetchData(false), 20000);
-      return () => clearInterval(intervalId);
     }
-  }, [fetchData]);
+  }, []);
 
   if (error) {
     return (
@@ -71,19 +47,16 @@ export default function Home() {
         <Alert variant="destructive">
           <AlertTitle>Error</AlertTitle>
           <AlertDescription>
-            Failed to load player data: {error}. Please try again later.
+            Failed to load player data: {error.message}. Please try again later.
           </AlertDescription>
         </Alert>
       </div>
     );
   }
 
-  const handleManualRefresh = () => {
-    fetchData(true);
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 px-4 py-8">
+      <WelcomeModal />
       <div className="container mx-auto">
         <motion.section
           initial={{ opacity: 0, y: -20 }}
@@ -105,7 +78,7 @@ export default function Home() {
           </div>
         </motion.section>
         <AnimatePresence mode="wait">
-          {isLoading && isManualRefresh ? (
+          {isValidating && !data ? (
             <motion.div
               key="loading"
               initial={{ opacity: 0 }}
@@ -118,8 +91,8 @@ export default function Home() {
           ) : gamesScheduled ? (
             <motion.div
               key="scheduled"
-              initial={isManualRefresh ? { opacity: 0, x: 20 } : false}
-              animate={isManualRefresh ? { opacity: 1, x: 0 } : false}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.3 }}
             >
               <p className="text-lg text-muted-foreground mb-4">
@@ -150,8 +123,8 @@ export default function Home() {
           ) : (
             <motion.div
               key="dashboard"
-              initial={isManualRefresh ? { opacity: 0, x: 20 } : false}
-              animate={isManualRefresh ? { opacity: 1, x: 0 } : false}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.3 }}
             >
               <KOTCDashboard
@@ -163,21 +136,6 @@ export default function Home() {
           )}
         </AnimatePresence>
       </div>
-      <motion.div
-        className="fixed bottom-4 right-4 z-50"
-        initial={{ opacity: 0, scale: 0 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 1 }}
-      >
-        <Button
-          size="icon"
-          className="rounded-full shadow-lg h-14 w-14"
-          onClick={handleManualRefresh}
-        >
-          <RefreshCw className="h-6 w-6" />
-          <span className="sr-only">Refresh</span>
-        </Button>
-      </motion.div>
     </div>
   );
 }
