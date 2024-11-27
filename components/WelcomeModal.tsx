@@ -51,7 +51,7 @@ export function WelcomeModal() {
               </li>
               <li className="flex gap-3">
                 <span className="text-base">•</span>
-                <span>Check today's NBA schedule</span>
+                <span>Check today&apos;s NBA schedule</span>
               </li>
               <li className="flex gap-3">
                 <span className="text-base">•</span>
