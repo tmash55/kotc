@@ -443,7 +443,7 @@ export default function KOTCDashboard({
               </SheetHeader>
               <div className="py-4 space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Show Starred Only</span>
+                  <span className="text-sm font-medium">Only Starred</span>
                   <Button
                     variant={showStarredOnly ? "default" : "outline"}
                     onClick={() => setShowStarredOnly(!showStarredOnly)}

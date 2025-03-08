@@ -10,26 +10,40 @@ export default function OddsPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
+  const [currentDate, setCurrentDate] = useState("");
 
   const refreshData = async () => {
     setIsRefreshing(true);
     try {
       setRefreshKey((prevKey) => prevKey + 1);
-      setLastUpdated(new Date().toLocaleString());
+      updateDateTime();
     } finally {
       setIsRefreshing(false);
     }
   };
 
+  const updateDateTime = () => {
+    const now = new Date();
+    setCurrentDate(
+      now.toLocaleDateString("en-US", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    );
+    setLastUpdated(now.toLocaleString());
+  };
+
   useEffect(() => {
-    setLastUpdated(new Date().toLocaleString());
+    updateDateTime();
   }, []);
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
         <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-0">
-          Today&apos;s NBA Odds
+          NBA Odds for {currentDate}
         </h1>
         <Button
           onClick={refreshData}

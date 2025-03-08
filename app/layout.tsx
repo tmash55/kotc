@@ -12,6 +12,7 @@ import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-proivder";
 import Footer from "@/components/Footer";
+import MarchMadnessBanner from "@/components/march-madness-banner";
 
 const font = Plus_Jakarta_Sans({ subsets: ["latin"] });
 
@@ -44,6 +45,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           disableTransitionOnChange
         >
           <div className="flex flex-col min-h-screen bg-background text-foreground">
+            <MarchMadnessBanner/>
             <Header />
             <div className="flex-grow">
               <div className="container mx-auto px-4 py-8">
