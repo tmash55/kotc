@@ -9,6 +9,7 @@ import ScheduledGames from "@/components/kotc/ScheduledGames";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DraftKingsPRA from "@/components/kotc/DraftKingsPRA";
 import { WelcomeModal } from "@/components/WelcomeModal";
+import RedirectBanner from "@/components/RedirectBanner";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -56,7 +57,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 px-4 py-8">
-      <WelcomeModal />
       <div className="container mx-auto">
         <motion.section
           initial={{ opacity: 0, y: -20 }}
@@ -77,64 +77,10 @@ export default function Home() {
             </div>
           </div>
         </motion.section>
-        <AnimatePresence mode="wait">
-          {isValidating && !data ? (
-            <motion.div
-              key="loading"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex justify-center items-center h-64"
-            >
-              <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary"></div>
-            </motion.div>
-          ) : gamesScheduled ? (
-            <motion.div
-              key="scheduled"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <p className="text-lg text-muted-foreground mb-4">
-                Once games start, this page will display the live leaderboard.
-                Who will be the king today?
-              </p>
-              <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="schedule">
-                    Today&apos;s Schedule
-                  </TabsTrigger>
-                  <TabsTrigger value="odds">DraftKings PRA</TabsTrigger>
-                </TabsList>
-                <TabsContent value="schedule">
-                  <h2 className="text-2xl font-bold my-4">
-                    Today&apos;s NBA Schedule
-                  </h2>
-                  <ScheduledGames games={games} />
-                </TabsContent>
-                <TabsContent value="odds">
-                  <h2 className="text-2xl font-bold my-4">
-                    DraftKings PRA Odds
-                  </h2>
-                  <DraftKingsPRA />
-                </TabsContent>
-              </Tabs>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="dashboard"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <KOTCDashboard
-                players={players}
-                allGamesFinal={allGamesFinal}
-                lastUpdated={lastUpdated}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
+
+        <RedirectBanner />
+        
+        
       </div>
     </div>
   );

@@ -45,10 +45,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           disableTransitionOnChange
         >
           <div className="flex flex-col min-h-screen bg-background text-foreground">
-            <MarchMadnessBanner/>
             <Header />
             <div className="flex-grow">
-              <div className="container mx-auto px-4 py-8">
+              <div className="container mx-auto px-4 py-2">
                 <main>{children}</main>
               </div>
             </div>
